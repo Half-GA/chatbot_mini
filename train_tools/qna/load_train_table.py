@@ -45,7 +45,7 @@ try:
     db = pymysql.connect(
         host="localhost",
         user="root",
-        passwd="tjwjdeogus369!",
+        passwd="root",
         db="food",
         charset='utf8'
     )
