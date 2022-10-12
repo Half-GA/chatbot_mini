@@ -1,7 +1,6 @@
 import threading
 import json
 
-from config.DatabaseConfig import *
 from utils.Database import Database
 from utils.BotServer import BotServer
 from utils.Preprocess import Preprocess
@@ -13,26 +12,18 @@ from utils.FindAnswer import FindAnswer
 p = Preprocess(word2index_dic='train_tools/dict/chatbot_dict.bin',
                userdic='utils/user_dic.tsv')
 
-# 의도 파악 모델
-intent = IntentModel(model_name='models/intent/intent_model.h5', proprocess=p)
-
-# 개체명 인식 모델
-ner = NerModel(model_name='models/ner/ner_model.h5', proprocess=p)
-
 
 def to_client(conn, addr, params):
     db = params['db']
     try:
-        db.connect()  # DB 연결
+        db.connect()
 
-        # 데이터 수신
         read = conn.recv(2048)  # 수신 데이터가 있을 때까지 블로킹
-        print("===========================")
-        print("Connection from: %s" % str(addr))
+        print('==========================')
+        print('Connection from: %s' % str(addr))
 
         if read is None or not read:
-            # 클라이언트 연결이 끊어지거나 오류가 있는 경우
-            print("클라이언트 연결 끊어짐")
+            print('클라이언트 연결 끊어짐')
             exit(0)  # 스레드 강제 종료
 
         # json 데이터로 변환
@@ -41,21 +32,28 @@ def to_client(conn, addr, params):
         query = recv_json_data['Query']
 
         # 의도 파악
-        intent_predict = intent.predict_class(query)
-        intent_name = intent.labels[intent_predict]
+        intent = IntentModel(model_name='models/intent/intent_model.h5', proprocess=p)
+        predict = intent.predict_class(query)
+        intent_name = intent.labels[predict]
 
         # 개체명 파악
-        ner_predicts = ner.predict(query)
+        ner = NerModel(model_name='models/ner/ner_model.h5', proprocess=p)
+        predicts = ner.predict(query)
         ner_tags = ner.predict_tags(query)
 
         # 답변 검색
         try:
-            f = FindAnswer(db)
-            answer_text, answer_image = f.search(intent_name, ner_tags)
-            answer = f.tag_to_word(ner_predicts, answer_text)
+            if intent_name == "음식점추천" and ner_tags == None:
+                answer = "해당 음식 맛집을 찾지 못했어요 ㅠㅠ 다른 음식을 입력해주세요"
+                answer_image = ' '
+
+            else:
+                f = FindAnswer(db)
+                answer_text, answer_image = f.search(intent_name, ner_tags, predicts)
+                answer = f.tag_to_word(predicts, answer_text)
 
         except:
-            answer = "죄송해요 무슨 말인지 모르겠어요. 조금 더 공부할게요."
+            answer = "죄송해요… 무슨 말씀이신지 모르겠어요…!!"
             answer_image = None
 
         send_json_data_str = {
@@ -63,7 +61,7 @@ def to_client(conn, addr, params):
             "Answer": answer,
             "AnswerImageUrl": answer_image,
             "Intent": intent_name,
-            "NER": str(ner_predicts)
+            "NER": str(predicts)
         }
         message = json.dumps(send_json_data_str)  # json 객체를 전송 가능한 문자열로 변환
         conn.send(message.encode())  # 응답 전송
@@ -78,13 +76,15 @@ def to_client(conn, addr, params):
 
 
 if __name__ == '__main__':
-    # 질문/답변 학습 db 연결 객체 생성
+    # 질문/ 답변 학습 db 연결 객체 생성
     db = Database(
-        host=DB_HOST, user=DB_USER, password=DB_PASSWORD, db_name=DB_NAME
+        host="localhost", user="root", password="tjwjdeogus369!", db_name="food"
     )
+
     print("DB 접속")
 
     # 봇 서버 동작
+
     port = 5050
     listen = 100
     bot = BotServer(port, listen)
@@ -96,10 +96,10 @@ if __name__ == '__main__':
         params = {
             "db": db
         }
-
+        print(conn, addr)
         client = threading.Thread(target=to_client, args=(
             conn,  # 클라이언트 연결 소켓
             addr,  # 클라이언트 연결 주소 정보
-            params  # 스레드 함수 파라미터
+            params
         ))
         client.start()  # 스레드 시작
