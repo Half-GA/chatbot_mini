@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import preprocessing
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Embedding, Dense, Dropout, Conv1D, GlobalMaxPool1D, concatenate
+import matplotlib as plt
 
 
 # 데이터 읽어오기
@@ -96,7 +97,7 @@ model.compile(optimizer='adam',
 
 
 # 모델 학습 ○6
-model.fit(train_ds, validation_data=val_ds, epochs=EPOCH, verbose=1)
+history = model.fit(train_ds, validation_data=val_ds, epochs=EPOCH, verbose=1)
 
 
 # 모델 평가(테스트 데이터 셋 이용) ○7
@@ -107,3 +108,19 @@ print('loss: %f' % (loss))
 
 # 모델 저장  ○8
 model.save('intent_model.h5')
+
+plt.figure(figsize=(12,4))
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(['train', 'validation'])
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.xlabel('epoch')
+plt.ylabel('loss')
