@@ -78,7 +78,7 @@ def to_client(conn, addr, params):
 if __name__ == '__main__':
     # 질문/ 답변 학습 db 연결 객체 생성
     db = Database(
-        host="localhost", user="root", password="tjwjdeogus369!", db_name="food"
+        host="localhost", user="root", password="root", db_name="food"
     )
 
     print("DB 접속")

@@ -111,7 +111,7 @@ def sequences_to_tag(sequences):  # 예측값을 index_to_ner를 사용하여 �
         result.append(temp)
     return result
 
-'''
+
 
 # f1 스코어 계산을 위해 사용
 from seqeval.metrics import f1_score, classification_report
@@ -124,4 +124,4 @@ test_tags = sequences_to_tag(y_test)    # 실제 NER
 # F1 평가 결과
 print(classification_report(test_tags, pred_tags))
 print("F1-score: {:.1%}".format(f1_score(test_tags, pred_tags)))
-'''
+

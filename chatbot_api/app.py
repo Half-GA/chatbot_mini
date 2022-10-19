@@ -3,7 +3,7 @@ import socket
 import json
 
 # 챗봇 엔진 서버 접속 정보
-host = "127.0.0.1"  # 챗봇 엔진 서버 IP 주소
+host = "127.0.0.1"  # 챗봇 API 서버 IP 주소
 port = 5050  # 챗봇 엔진 서버 통신 포트
 
 # Flask 어플리케이션
